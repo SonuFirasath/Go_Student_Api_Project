@@ -38,6 +38,8 @@ func main() {
 
 	router.HandleFunc("GET /api/students/{id}", student.GetByID(storage))
 
+	router.HandleFunc("GET /api/students", student.GetList(storage))
+
 	// Setup server
 
 	server := http.Server{
