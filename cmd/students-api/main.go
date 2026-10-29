@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/SonuFirasath/Go_Student_Api_Project/internal/config"
+	"github.com/SonuFirasath/Go_Student_Api_Project/internal/http/handlers/student"
+	"github.com/SonuFirasath/Go_Student_Api_Project/internal/storage/sqlite"
 )
 
 func main() {
@@ -21,12 +23,22 @@ func main() {
 
 	//Database setup
 
+	storage, err :=sqlite.New(cfg)
+
+	if err != nil{
+		log.Fatal(err)
+	}
+
+	slog.Info("Storag initialized",slog.String("env",cfg.Env),slog.String("version","1.0.0"),slog.String("storage_path",cfg.StoragePath))
+
 	//Setup router
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request){
-		w.Write([]byte("Welcome to students api"))
-	})
+	router.HandleFunc("POST /api/students", student.New(storage))
+
+	router.HandleFunc("GET /api/students/{id}", student.GetByID(storage))
+
+	router.HandleFunc("GET /api/students", student.GetList(storage))
 
 	// Setup server
 
@@ -57,7 +69,7 @@ func main() {
 
 	defer cancle()
 
-	err :=	server.Shutdown(ctx)
+	err =	server.Shutdown(ctx)
 
 	if err!=nil{
 		slog.Error("Failed to shutdown server...", slog.String("error",err.Error()))
